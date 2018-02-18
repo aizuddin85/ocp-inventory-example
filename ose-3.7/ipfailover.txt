@@ -1,0 +1,9 @@
+oc label nodes ocp-master01 "ha-router=primary"
+oc label nodes ocp-master02 "ha-router=primary"
+oc label nodes ocp-master03 "ha-router=primary"
+
+oc adm policy add-scc-to-user privileged -z ipfailover
+
+oc adm ipfailover --selector="ha-router=primary" \
+    --virtual-ips="192.168.122.63" \
+    --watch-port=80 --replicas=3 --create
