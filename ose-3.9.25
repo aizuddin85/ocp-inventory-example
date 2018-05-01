@@ -1,0 +1,59 @@
+# Create an OSEv3 group that contains the master, nodes, etcd, and lb groups.
+# The lb group lets Ansible configure HAProxy as the load balancing solution.
+# Comment lb out if your load balancer is pre-configured.
+[OSEv3:children]
+masters
+nodes
+etcd
+nfs
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+ansible_ssh_user=root
+openshift_deployment_type=openshift-enterprise
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+openshift_master_cluster_hostname=master1.devopshumans.com
+openshift_master_cluster_public_hostname=master1.devopshumans.com
+openshift_master_default_subdomain=capps.devopshumans.com
+openshift_disable_check=memory_availability,disk_availability
+openshift_master_named_certificates=[{"certfile": "/root/ssl-CA/master/ocp-master.crt", "keyfile": "/root/ssl-CA/master/device.key", "cafile": "/root/ssl-CA/rootCA.pem"}]
+openshift_master_overwrite_named_certificates=true
+
+#openshift_node_kubelet_args={'pods-per-core': ['10'], 'max-pods': ['250'], 'image-gc-high-threshold': ['90'], 'image-gc-low-threshold': ['80']}
+
+# enable ntp on masters to ensure proper failover
+openshift_clock_enabled=true
+
+# Metrics
+openshift_metrics_install_metrics=true
+openshift_metrics_image_version=v3.9.25
+openshift_metrics_cassandra_storage_type=pv
+openshift_metrics_hawkular_ca=/root/ssl-CA/rootCA.pem
+openshift_metrics_hawkular_cert=/root/ssl-CA/metrics/metrics.crt
+openshift_metrics_hawkular_key=/root/ssl-CA/metrics/device.key
+
+# EFK
+openshift_logging_install_logging=true
+openshift_logging_image_version=v3.9.25
+openshift_logging_kibana_hostname=kibana-ocp.devopshumans.com
+openshift_logging_kibana_key=/root/ssl-CA/kibana/device.key
+openshift_logging_kibana_cert=/root/ssl-CA/kibana/kibana-ocp.crt
+openshift_logging_kibana_ca=/root/ssl-CA/rootCA.pem
+openshift_logging_es_pvc_size=10Gi
+
+
+# host group for masters
+[masters]
+master1.devopshumans.com
+
+# host group for etcd
+[etcd]
+master1.devopshumans.com
+
+[nfs]
+worker1.devopshumans.com openshift_node_labels="{'region': 'storage', 'zone': 'nfs'}"
+
+# host group for nodes, includes region info
+[nodes]
+master1.devopshumans.com openshift_node_labels="{'region': 'infra', 'zone': 'master'}"
+worker2.devopshumans.com openshift_node_labels="{'region': 'worker', 'zone': 'compute'}"
