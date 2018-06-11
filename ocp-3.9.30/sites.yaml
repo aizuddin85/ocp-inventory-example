@@ -1,0 +1,19 @@
+---
+- import_playbook: /usr/share/ansible/openshift-ansible/playbooks/adhoc/uninstall.yml
+  tags:
+    - uninstall
+    - reinstall
+
+- import_playbook: playbooks/clean_docker.yml
+  tags:
+    - uninstall
+    - cleandocker
+
+- import_playbook: /usr/share/ansible/openshift-ansible/playbooks/prerequisites.yml
+  tags:
+    - reinstall
+
+- import_playbook: /usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml
+  tags:
+    - install
+    - reinstall  

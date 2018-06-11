@@ -1,0 +1,56 @@
+[OSEv3:children]
+masters
+nodes
+etcd
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+ansible_ssh_user=cloud-user
+ansible_become=true
+openshift_deployment_type=openshift-enterprise
+openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+openshift_master_cluster_hostname=ocpmaster01.uprising.net
+openshift_master_cluster_public_hostname=ocpmaster01.uprising.net
+openshift_master_default_subdomain=capps.uprising.net
+openshift_disable_check=memory_availability,disk_availability,docker_storage
+openshift_hosted_router_selector='region=infra'
+os_firewall_use_firewalld=True
+
+# Image Resource
+oreg_url=gateway:5000/openshift3/ose-${component}:${version}
+openshift_examples_modify_imagestreams=true
+openshift_docker_additional_registries=gateway:5000
+openshift_docker_insecure_registries=gateway:5000
+openshift_enable_service_catalog=false
+template_service_broker_install=false
+openshift_install_examples=true
+
+
+#openshift_node_kubelet_args={'pods-per-core': ['10'], 'max-pods': ['250'], 'image-gc-high-threshold': ['90'], 'image-gc-low-threshold': ['80']}
+
+# enable ntp on masters to ensure proper failover
+openshift_clock_enabled=true
+
+# Metrics
+openshift_metrics_install_metrics=true
+openshift_metrics_image_version=v3.9.30
+openshift_metrics_image_prefix=gateway:5000/openshift3/
+
+# EFK
+openshift_logging_install_logging=true
+openshift_logging_image_version=v3.9.30
+openshift_logging_image_prefix=gateway:5000/openshift3/
+
+# host group for masters
+[masters]
+ocpmaster01.uprising.net
+
+# host group for etcd
+[etcd]
+ocpmaster01.uprising.net
+
+# host group for nodes, includes region info
+[nodes]
+ocpmaster01.uprising.net openshift_node_labels="{'region': 'master', 'zone': 'master'}"
+ocpinfra01.uprising.net openshift_node_labels="{'region': 'infra', 'zone': 'infra'}"
+ocpworker01.uprising.net openshift_node_labels="{'region': 'worker', 'zone': 'worker'}"

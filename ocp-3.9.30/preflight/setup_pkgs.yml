@@ -1,0 +1,46 @@
+---
+- name: Preflight
+  hosts: OSEv3
+  become: true
+  vars:
+    - base_packages:
+        - "katello-agent"
+        - "wget"
+        - "git"
+        - "net-tools"
+        - "bind-utils"
+        - "iptables-services"
+        - "bridge-utils"
+        - "bash-completion"
+        - "kexec-tools"
+        - "sos"
+        - "psacct"
+        - "atomic-openshift-utils"
+        - "iputils"
+        - "patch"
+    - rhel_ver: 7.5
+
+  tasks:
+# tasks file for setup-pkges
+
+    - name: Install base packages
+      yum:
+        name: '{{ item }}'
+        state: latest
+      with_items: "{{ base_packages }}"
+
+    - name: Yum update
+      command: 'yum --releasever={{ rhel_ver }} update -y'
+
+
+    - name: Install docker
+      yum:
+        name: docker
+        state: present
+
+
+    - name: Start docker
+      service:
+        name: docker
+        enabled: true
+        state: started

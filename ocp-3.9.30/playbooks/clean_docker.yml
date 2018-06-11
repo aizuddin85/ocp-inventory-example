@@ -1,0 +1,16 @@
+---
+- name: Clean up docker
+  hosts: OSEv3
+  tasks:
+    - name: Stop docker
+      service:
+        name: docker
+        state: stopped
+  
+    - name: Clean docker
+      shell: 'rm -rvf /var/lib/docker/*'
+
+    - name: Start docker
+      service:
+        name: docker
+        state: started
